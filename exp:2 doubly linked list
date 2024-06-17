@@ -1,0 +1,149 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Define the structure for a doubly linked list node
+typedef struct Node {
+    int data;
+    struct Node *prev;
+    struct Node *next;
+} Node;
+
+// Function to create a new node
+Node* createNode(int data) {
+    Node newNode = (Node)malloc(sizeof(Node));
+    newNode->data = data;
+    newNode->prev = NULL;
+    newNode->next = NULL;
+    return newNode;
+}
+
+// Insert a node at the beginning of the list
+void insertAtBeginning(Node **head, int data) {
+    Node *newNode = createNode(data);
+    if (*head != NULL) {
+        (*head)->prev = newNode;
+    }
+    newNode->next = *head;
+    *head = newNode;
+}
+
+// Insert a node at the end of the list
+void insertAtEnd(Node **head, int data) {
+    Node *newNode = createNode(data);
+    if (*head == NULL) {
+        *head = newNode;
+        return;
+    }
+    Node *temp = *head;
+    while (temp->next != NULL) {
+        temp = temp->next;
+    }
+    temp->next = newNode;
+    newNode->prev = temp;
+}
+
+// Insert a node after a given node
+void insertAfter(Node *prevNode, int data) {
+    if (prevNode == NULL) {
+        printf("The given previous node cannot be NULL\n");
+        return;
+    }
+    Node *newNode = createNode(data);
+    newNode->next = prevNode->next;
+    newNode->prev = prevNode;
+    if (prevNode->next != NULL) {
+        prevNode->next->prev = newNode;
+    }
+    prevNode->next = newNode;
+}
+
+// Delete a node from the list
+void deleteNode(Node **head, Node *delNode) {
+    if (*head == NULL || delNode == NULL) {
+        return;
+    }
+    if (*head == delNode) {
+        *head = delNode->next;
+    }
+    if (delNode->next != NULL) {
+        delNode->next->prev = delNode->prev;
+    }
+    if (delNode->prev != NULL) {
+        delNode->prev->next = delNode->next;
+    }
+    free(delNode);
+}
+
+// Search for an element in the list
+Node* search(Node *head, int data) {
+    Node *temp = head;
+    while (temp != NULL) {
+        if (temp->data == data) {
+            return temp;
+        }
+        temp = temp->next;
+    }
+    return NULL;
+}
+
+// Display the list
+void displayList(Node *head) {
+    Node *temp = head;
+    while (temp != NULL) {
+        printf("%d <-> ", temp->data);
+        temp = temp->next;
+    }
+    printf("NULL\n");
+}
+
+// Main function to demonstrate the operations
+int main() {
+    Node *head = NULL;
+
+    // Insertion operations
+    insertAtBeginning(&head, 10);
+    insertAtBeginning(&head, 20);
+    insertAtEnd(&head, 30);
+    insertAtEnd(&head, 40);
+    Node *node20 = search(head, 20);
+    if (node20 != NULL) {
+        insertAfter(node20, 25);
+    }
+
+    // Display the list
+    printf("Doubly Linked List: ");
+    displayList(head);
+
+    // Search operation
+    Node *foundNode = search(head, 30);
+    if (foundNode != NULL) {
+        printf("Element 30 found\n");
+    } else {
+        printf("Element 30 not found\n");
+    }
+
+    // Deletion operations
+    deleteNode(&head, head); // Delete the first node
+    printf("After deleting the first node: ");
+    displayList(head);
+
+    Node *node25 = search(head, 25);
+    if (node25 != NULL) {
+        deleteNode(&head, node25); // Delete node with data 25
+    }
+    printf("After deleting node with data 25: ");
+    displayList(head);
+
+    deleteNode(&head, head->next->next); // Delete the last node
+    printf("After deleting the last node: ");
+    displayList(head);
+
+    // Clean up the entire list
+    while (head != NULL) {
+        deleteNode(&head, head);
+    }
+    printf("After deleting the entire list: ");
+    displayList(head);
+
+    return 0;
+}
