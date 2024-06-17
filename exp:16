@@ -1,0 +1,145 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+#define SIZE 10
+
+// Node structure for chaining
+typedef struct Node {
+    int key;
+    int data;
+    struct Node* next;
+} Node;
+
+// Hash table structure
+typedef struct {
+    Node* array[SIZE];
+} HashTable;
+
+// Function to create a new node
+Node* createNode(int key, int data) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    if (newNode == NULL) {
+        printf("Memory allocation failed\n");
+        exit(1);
+    }
+    newNode->key = key;
+    newNode->data = data;
+    newNode->next = NULL;
+    return newNode;
+}
+
+// Function to initialize hash table
+void initializeHashTable(HashTable* ht) {
+    for (int i = 0; i < SIZE; i++) {
+        ht->array[i] = NULL;
+    }
+}
+
+// Function to calculate hash value
+int hash(int key) {
+    return key % SIZE;
+}
+
+// Function to insert data into hash table using open addressing (linear probing)
+void insertOpenAddressing(HashTable* ht, int key, int data) {
+    int index = hash(key);
+    while (ht->array[index] != NULL) {
+        index = (index + 1) % SIZE;
+    }
+    ht->array[index] = createNode(key, data);
+}
+
+// Function to search for data in hash table using open addressing (linear probing)
+bool searchOpenAddressing(HashTable* ht, int key) {
+    int index = hash(key);
+    while (ht->array[index] != NULL) {
+        if (ht->array[index]->key == key) {
+            return true;
+        }
+        index = (index + 1) % SIZE;
+    }
+    return false;
+}
+
+// Function to insert data into hash table using closed addressing (chaining)
+void insertClosedAddressing(HashTable* ht, int key, int data) {
+    int index = hash(key);
+    Node* newNode = createNode(key, data);
+    if (ht->array[index] == NULL) {
+        ht->array[index] = newNode;
+    } else {
+        Node* temp = ht->array[index];
+        while (temp->next != NULL) {
+            temp = temp->next;
+        }
+        temp->next = newNode;
+    }
+}
+
+// Function to search for data in hash table using closed addressing (chaining)
+bool searchClosedAddressing(HashTable* ht, int key) {
+    int index = hash(key);
+    Node* temp = ht->array[index];
+    while (temp != NULL) {
+        if (temp->key == key) {
+            return true;
+        }
+        temp = temp->next;
+    }
+    return false;
+}
+
+// Function to rehash the hash table
+void rehash(HashTable* ht) {
+    // Create a new hash table with double the size
+    HashTable newHT;
+    initializeHashTable(&newHT);
+
+    // Copy elements from old hash table to new hash table
+    for (int i = 0; i < SIZE; i++) {
+        Node* temp = ht->array[i];
+        while (temp != NULL) {
+            insertClosedAddressing(&newHT, temp->key, temp->data);
+            temp = temp->next;
+        }
+    }
+
+    // Update the old hash table with the new hash table
+    *ht = newHT;
+}
+
+int main() {
+    HashTable ht;
+    initializeHashTable(&ht);
+
+    // Insert data into hash table using open addressing
+    insertOpenAddressing(&ht, 12, 120);
+    insertOpenAddressing(&ht, 22, 220);
+    insertOpenAddressing(&ht, 32, 320);
+    insertOpenAddressing(&ht, 42, 420);
+    insertOpenAddressing(&ht, 52, 520);
+
+    // Search for data in hash table using open addressing
+    printf("Searching for key 22 using open addressing: %s\n", searchOpenAddressing(&ht, 22) ? "Found" : "Not found");
+    printf("Searching for key 25 using open addressing: %s\n", searchOpenAddressing(&ht, 25) ? "Found" : "Not found");
+
+    // Insert data into hash table using closed addressing
+    insertClosedAddressing(&ht, 13, 130);
+    insertClosedAddressing(&ht, 23, 230);
+    insertClosedAddressing(&ht, 33, 330);
+    insertClosedAddressing(&ht, 43, 430);
+    insertClosedAddressing(&ht, 53, 530);
+
+    // Search for data in hash table using closed addressing
+    printf("Searching for key 23 using closed addressing: %s\n", searchClosedAddressing(&ht, 23) ? "Found" : "Not found");
+    printf("Searching for key 26 using closed addressing: %s\n", searchClosedAddressing(&ht, 26) ? "Found" : "Not found");
+
+    // Rehash the hash table
+    rehash(&ht);
+
+    // Search for data in hash table after rehashing
+    printf("Searching for key 23 after rehashing: %s\n", searchClosedAddressing(&ht, 23) ? "Found" : "Not found");
+
+    return 0;
+}
