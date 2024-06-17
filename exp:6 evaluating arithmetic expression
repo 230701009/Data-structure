@@ -1,0 +1,88 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <math.h>
+#include <string.h>
+
+#define MAX 100
+
+// Stack structure for integers
+typedef struct {
+    int items[MAX];
+    int top;
+} Stack;
+
+// Initialize the stack
+void initStack(Stack *s) {
+    s->top = -1;
+}
+
+// Check if the stack is empty
+int isEmpty(Stack *s) {
+    return s->top == -1;
+}
+
+// Check if the stack is full
+int isFull(Stack *s) {
+    return s->top == MAX - 1;
+}
+
+// Push an element onto the stack
+void push(Stack *s, int value) {
+    if (isFull(s)) {
+        printf("Stack overflow\n");
+        return;
+    }
+    s->items[++(s->top)] = value;
+}
+
+// Pop an element from the stack
+int pop(Stack *s) {
+    if (isEmpty(s)) {
+        printf("Stack underflow\n");
+        return -1;
+    }
+    return s->items[(s->top)--];
+}
+
+// Evaluate a postfix expression
+int evaluatePostfix(char* postfix) {
+    Stack stack;
+    initStack(&stack);
+    int i;
+
+    for (i = 0; postfix[i] != '\0'; i++) {
+        char ch = postfix[i];
+
+        if (isdigit(ch)) {
+            push(&stack, ch - '0');
+        } else {
+            int val1 = pop(&stack);
+            int val2 = pop(&stack);
+
+            switch (ch) {
+                case '+': push(&stack, val2 + val1); break;
+                case '-': push(&stack, val2 - val1); break;
+                case '*': push(&stack, val2 * val1); break;
+                case '/': push(&stack, val2 / val1); break;
+                case '^': push(&stack, pow(val2, val1)); break;
+                default: printf("Invalid operator encountered: %c\n", ch); exit(1);
+            }
+        }
+    }
+
+    return pop(&stack);
+}
+
+// Main function to demonstrate the evaluation
+int main() {
+    char postfix[MAX];
+
+    printf("Enter a postfix expression: ");
+    scanf("%s", postfix);
+
+    int result = evaluatePostfix(postfix);
+    printf("Result of the postfix expression: %d\n", result);
+
+    return 0;
+}
